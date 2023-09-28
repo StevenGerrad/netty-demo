@@ -11,11 +11,30 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static cn.itcast.netty.c1.ByteBufferUtil.debugAll;
 import static cn.itcast.netty.c1.ByteBufferUtil.debugRead;
 
 
 @Slf4j
 public class Server {
+
+    private static void split(ByteBuffer source) {
+        source.flip();
+        for (int i = 0; i < source.limit(); i++) {
+            // 找到一条完整消息
+            if (source.get(i) == '\n') {
+                int length = i + 1 - source.position();
+                // 把这条完整消息存入新的 ByteBuffer
+                ByteBuffer target = ByteBuffer.allocate(length);
+                // 从 source 读，向 target 写
+                for (int j = 0; j < length; j++) {
+                    target.put(source.get());
+                }
+                debugAll(target);
+            }
+        }
+        source.compact();
+    }
     public static void main(String[] args) throws IOException {
         // 1. 创建 Selector，管理多个channel
         Selector selector = Selector.open();
@@ -49,21 +68,31 @@ public class Server {
                     SocketChannel sc = channel.accept();
                     // selectedKeys 会主动添加，不会主动删除，处理完一个key就要把它删除，否则取出来为null
                     sc.configureBlocking(false);
-                    SelectionKey scKey = sc.register(selector, 0, null);
+                    ByteBuffer buffer = ByteBuffer.allocate(16);
+                    // 将一个 bytebuffer 作为附件关联到 selectionKey 上
+                    SelectionKey scKey = sc.register(selector, 0, buffer);
                     scKey.interestOps(SelectionKey.OP_READ);
                     log.debug("{}", sc);
                     log.debug("scKey:{}", scKey);
                 } else if(key.isReadable()){    // 如果是read
                     try{
                         SocketChannel channel = (SocketChannel) key.channel();  // 拿到触发事件的channel
-                        ByteBuffer buffer = ByteBuffer.allocate(4);
+                        // 获取 selectionKey 上关联的附件
+                        ByteBuffer buffer = (ByteBuffer) key.attachment();
                         int read = channel.read(buffer); // 如果是正常断开，read的方法的返回值是-1
                         if(read == -1){
                             key.cancel();
                         } else{
-                            buffer.flip();
-                            // debugRead(buffer);
-                            System.out.println(Charset.defaultCharset().decode(buffer));
+                            // buffer.flip();
+                            // // debugRead(buffer);
+                            // System.out.println(Charset.defaultCharset().decode(buffer));
+                            split(buffer);
+                            if(buffer.position() == buffer.limit()){
+                                ByteBuffer newBuffer = ByteBuffer.allocate(buffer.capacity() * 2);
+                                buffer.flip();
+                                newBuffer.put(buffer);
+                                key.attach(newBuffer);
+                            }
                         }
                     } catch(IOException e){
                         e.printStackTrace();
