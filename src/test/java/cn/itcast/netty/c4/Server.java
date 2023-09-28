@@ -53,11 +53,20 @@ public class Server {
                     log.debug("{}", sc);
                     log.debug("scKey:{}", scKey);
                 } else if(key.isReadable()){    // 如果是read
-                    SocketChannel channel = (SocketChannel) key.channel();  // 拿到触发事件的channel
-                    ByteBuffer buffer = ByteBuffer.allocate(16);
-                    channel.read(buffer);
-                    buffer.flip();
-                    debugRead(buffer);
+                    try{
+                        SocketChannel channel = (SocketChannel) key.channel();  // 拿到触发事件的channel
+                        ByteBuffer buffer = ByteBuffer.allocate(16);
+                        int read = channel.read(buffer); // 如果是正常断开，read的方法的返回值是-1
+                        if(read == -1){
+                            key.cancel();
+                        } else{
+                            buffer.flip();
+                            debugRead(buffer);
+                        }
+                    } catch(IOException e){
+                        e.printStackTrace();
+                        key.cancel();   // 由于客户端断开了，因此需要将key取消（从selector的key集合中真正删除）
+                    }
                 }
                 // key.cancel();
             }
