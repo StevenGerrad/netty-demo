@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -55,13 +56,14 @@ public class Server {
                 } else if(key.isReadable()){    // 如果是read
                     try{
                         SocketChannel channel = (SocketChannel) key.channel();  // 拿到触发事件的channel
-                        ByteBuffer buffer = ByteBuffer.allocate(16);
+                        ByteBuffer buffer = ByteBuffer.allocate(4);
                         int read = channel.read(buffer); // 如果是正常断开，read的方法的返回值是-1
                         if(read == -1){
                             key.cancel();
                         } else{
                             buffer.flip();
-                            debugRead(buffer);
+                            // debugRead(buffer);
+                            System.out.println(Charset.defaultCharset().decode(buffer));
                         }
                     } catch(IOException e){
                         e.printStackTrace();
