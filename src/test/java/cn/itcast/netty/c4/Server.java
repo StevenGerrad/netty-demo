@@ -30,12 +30,13 @@ public class Server {
         while(true){
             // 4. accept 建立与客户端连接，SocketChannel 用来与客户端通信
             log.debug("connecting...");
-            SocketChannel sc = ssc.accept();    // 阻塞方法，
+            SocketChannel sc = ssc.accept();    // 阻塞方法，线程停止运行
             log.debug("connecting... {}", sc);
+            channels.add(sc);
             for(SocketChannel channel : channels){
                 // 5. 接受客户端发送的数据
                 log.debug("before read... {}", channel);
-                channel.read(buffer);
+                channel.read(buffer);   // 阻塞方法，线程停止运行
                 buffer.flip();
                 debugRead(buffer);
                 buffer.clear();
