@@ -12,6 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static cn.itcast.nio.c2.ByteBufferUtil.debugAll;
 
+/**
+ * P44
+ */
 @Slf4j
 public class MultiThreadServer1 {
     public static void main(String[] args) throws IOException {
@@ -70,6 +73,8 @@ public class MultiThreadServer1 {
      * worker-0 已经启动了，执行run，在 selector.select(); 这里阻塞住
      * boss 唤醒 （执行selector.wakeup();） TODO：不会提前唤醒吗？
      * worker-0 继续执行，从队列中拿到任务事件。但其实不一定有任务，然后循环回来继续在 selector.select(); 阻塞
+     *
+     * boss 再来连接事件，又会调用 register，并调用 selector.wakeup
      */
 
     static class Worker implements Runnable{
@@ -95,17 +100,22 @@ public class MultiThreadServer1 {
                 thread.start();
                 start = true;
             }
+            // 问题：
             // sc.register(selector, SelectionKey.OP_READ, null);  // 虽然这行代码在worker里，但其实还是boss线程执行
 
-            // 向队列添加了任务，单这个任务并没有立刻执行
-            queue.add(()->{
-                try{
-                    sc.register(selector, SelectionKey.OP_READ, null);
-                } catch (ClosedChannelException e){
-                    e.printStackTrace();
-                }
-            });
-            selector.wakeup();  // 唤醒 selector
+            // 解决方案1：向队列添加了任务，单这个任务并没有立刻执行
+            // queue.add(()->{
+            //     try{
+            //         sc.register(selector, SelectionKey.OP_READ, null);
+            //     } catch (ClosedChannelException e){
+            //         e.printStackTrace();
+            //     }
+            // });
+            // selector.wakeup();  // 唤醒 selector 方法 boss
+
+            // 解决方案2：
+            selector.wakeup();  // 唤醒 selector 方法 boss（是因为wakeup这个方法是可以先运行的）
+            sc.register(selector, SelectionKey.OP_READ, null);  // boss
         }
 
         /**
