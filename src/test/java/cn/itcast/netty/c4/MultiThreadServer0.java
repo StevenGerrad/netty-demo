@@ -25,7 +25,7 @@ public class MultiThreadServer0 {
         ssc.bind(new InetSocketAddress(8080));
 
         Worker worker = new Worker("worker-0");
-        worker.register();
+        // worker.register();
 
         while(true) {
             boss.select();
@@ -41,7 +41,15 @@ public class MultiThreadServer0 {
                     // 2. 关联 selector
                     log.debug("before register...{}", sc.getRemoteAddress());
 
-                    sc.register(worker.selector, SelectionKey.OP_READ, null);
+                    // 把该语句从 new Worker 后拿到这里，有一定几率被先执行
+                    worker.register();  // 初始化 selector 启动worker0
+                    // 如果下面worker的run()中的selector.select() 先执行了，就会在哪阻塞住，不会执行这个
+                    sc.register(worker.selector, SelectionKey.OP_READ, null);   // 在boss中执行
+
+                    // 把 worker.register(); 拿下来有一定几率解决 Worker.run()中的selector.select() 和
+                    // sc.register(worker.selector... 阻塞的问题，但是再开一个Client的话还是会阻塞住
+                    // 根本原因是都使用了同一个 selector
+
                     log.debug("after register...{}", sc.getRemoteAddress());
                 }
             }
@@ -79,7 +87,7 @@ public class MultiThreadServer0 {
         public void run() {
             while(true) {
                 try {
-                    selector.select(); // worker-0  阻塞
+                    selector.select(); // 在 worker-0 执行阻塞
                     Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
                     while (iter.hasNext()) {
                         SelectionKey key = iter.next();
