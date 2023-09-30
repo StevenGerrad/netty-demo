@@ -1,4 +1,4 @@
-package cn.itcast.netty.c5;
+package cn.itcast.nio.c5;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,7 +9,7 @@ import java.nio.channels.CompletionHandler;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-import static cn.itcast.nio.c2.ByteBufferUtil.debugAll;
+import static cn.itcast.nio.c1.ByteBufferUtil.debugAll;
 
 /**
  * @projectName: netty-demo

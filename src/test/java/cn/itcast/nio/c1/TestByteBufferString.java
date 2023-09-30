@@ -1,5 +1,4 @@
-package cn.itcast.nio.c2;
-
+package cn.itcast.nio.c1;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

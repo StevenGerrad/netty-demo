@@ -1,8 +1,7 @@
-package cn.itcast.netty.c4;
+package cn.itcast.nio.c4;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 

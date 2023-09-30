@@ -1,4 +1,4 @@
-package cn.itcast.nio.c2;
+package cn.itcast.nio.c1;
 
 import java.nio.ByteBuffer;
 
