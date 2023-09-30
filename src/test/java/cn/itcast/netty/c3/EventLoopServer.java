@@ -27,7 +27,9 @@ public class EventLoopServer {
         EventLoopGroup group = new DefaultEventLoopGroup();
         new ServerBootstrap()
                 // boss 和 worker
-                // 细分1：boss 只负责 ServerSocketChannel 上 accept 事件     worker 只负责 socketChannel 上的读写
+                // 细分1：boss 只负责 ServerSocketChannel 上 accept 事件
+                //          （不用设置线程数1，NioServerSocketChannel 只会跟里面的一个 EventLoop 绑定，也没有更多的ServerSocketChannel了）
+                //       worker 只负责 socketChannel 上的读写，线程数根据实际情况设置
                 .group(new NioEventLoopGroup(), new NioEventLoopGroup(2))
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
