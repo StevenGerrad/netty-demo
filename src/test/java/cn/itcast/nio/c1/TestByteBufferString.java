@@ -3,7 +3,7 @@ package cn.itcast.nio.c1;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import static cn.itcast.nio.c2.ByteBufferUtil.debugAll;
+import static cn.itcast.nio.c1.ByteBufferUtil.debugAll;
 
 public class TestByteBufferString {
     public static void main(String[] args) {

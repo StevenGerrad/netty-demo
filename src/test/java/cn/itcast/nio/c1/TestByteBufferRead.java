@@ -2,7 +2,7 @@ package cn.itcast.nio.c1;
 
 import java.nio.ByteBuffer;
 
-import static cn.itcast.nio.c2.ByteBufferUtil.debugAll;
+import static cn.itcast.nio.c1.ByteBufferUtil.debugAll;
 
 public class TestByteBufferRead {
 
