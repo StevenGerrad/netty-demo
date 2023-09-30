@@ -23,7 +23,7 @@ import java.nio.charset.Charset;
 @Slf4j
 public class EventLoopServer {
     public static void main(String[] args) {
-        // 细分2：创建一个独立的 EventLoopGroup
+        // 细分2：创建一个独立的 EventLoopGroup（专门执行耗时较长的操作）
         EventLoopGroup group = new DefaultEventLoopGroup();
         new ServerBootstrap()
                 // boss 和 worker
@@ -40,16 +40,17 @@ public class EventLoopServer {
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                 ByteBuf buf = (ByteBuf) msg;
                                 log.debug(buf.toString(Charset.defaultCharset()));
-                                // ctx.fireChannelRead(msg); // 让消息传递给下一个handler
+                                // 一个worker处理很多channel，如果一个channel过于耗时，其它channel都会被拖慢了
+                                ctx.fireChannelRead(msg); // 让消息传递给下一个handler
                             }
-                        });
-                        /*.addLast(group, "handler2", new ChannelInboundHandlerAdapter() {
+                        })
+                        .addLast(group, "handler2", new ChannelInboundHandlerAdapter() {
                             @Override                                         // ByteBuf
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                 ByteBuf buf = (ByteBuf) msg;
                                 log.debug(buf.toString(Charset.defaultCharset()));
                             }
-                        });*/
+                        });
                     }
                 })
                 .bind(8080);
