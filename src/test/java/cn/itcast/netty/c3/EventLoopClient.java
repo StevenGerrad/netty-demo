@@ -33,6 +33,8 @@ public class EventLoopClient {
     //     System.out.println(channel);
     //     System.out.println("");
     // }
+
+
     public static void main(String[] args) throws InterruptedException {
         // 2. 带有 Future，Promise 的类型都是和异步方法配套使用，用来处理结果
         ChannelFuture channelFuture = new Bootstrap()
@@ -49,21 +51,23 @@ public class EventLoopClient {
                 // 1s 秒后连接才建立好，但是 main 会继续向下执行，所以下面要使用 sync 方法
                 .connect(new InetSocketAddress("localhost", 8080));
 
-        // 2.1 使用 sync 方法同步处理结果
-        channelFuture.sync(); // 阻塞住当前线程，直到nio线程连接建立完毕
-        Channel channel = channelFuture.channel();
-        log.debug("{}", channel);
-        channel.writeAndFlush("hello, world");
+        // 那么如何获取异步的结果呢？
 
-        // 2.2 使用 addListener(回调对象) 方法异步处理结果
-        // channelFuture.addListener(new ChannelFutureListener() {
-        //     @Override
-        //     // 在 nio 线程连接建立好之后，会调用 operationComplete
-        //     public void operationComplete(ChannelFuture future) throws Exception {
-        //         Channel channel = future.channel();
-        //         log.debug("{}", channel);
-        //         channel.writeAndFlush("hello, world");
-        //     }
-        // });
+        // 2.1 方法一：使用 sync 方法同步处理结果
+        // channelFuture.sync(); // 阻塞住当前线程，直到nio线程连接建立完毕
+        // Channel channel = channelFuture.channel();   // 仍由主线程等待结果
+        // log.debug("{}", channel);
+        // channel.writeAndFlush("hello, world");
+
+        // 2.2 方法二：使用 addListener(回调对象) 方法异步处理结果。等结果的也不是主线程了
+        channelFuture.addListener(new ChannelFutureListener() {
+            @Override
+            // 在 nio 线程连接建立好之后，会调用 operationComplete
+            public void operationComplete(ChannelFuture future) throws Exception {
+                Channel channel = future.channel();
+                log.debug("{}", channel);
+                channel.writeAndFlush("hello, world");
+            }
+        });
     }
 }
