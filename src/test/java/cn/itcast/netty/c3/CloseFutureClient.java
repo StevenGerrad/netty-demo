@@ -55,11 +55,11 @@ public class CloseFutureClient {
         }, "input").start();
 
         // 获取 CloseFuture 对象， 1) 同步处理关闭， 2) 异步处理关闭
-        // 方案一：同步处理关闭
         ChannelFuture closeFuture = channel.closeFuture();
-        log.debug("waiting close...");
-        closeFuture.sync();
-        log.debug("处理关闭之后的操作");
+        // 方案一：同步处理关闭
+        // log.debug("waiting close...");
+        // closeFuture.sync();
+        // log.debug("处理关闭之后的操作");
 
         // 方案二：异步处理关闭
         // System.out.println(closeFuture.getClass());
