@@ -32,8 +32,8 @@ public class TestPipeline {
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                 log.debug("1");
 
-                                ByteBuf buf = (ByteBuf) msg;
-                                String name = buf.toString(Charset.defaultCharset());
+                                // ByteBuf buf = (ByteBuf) msg;
+                                // String name = buf.toString(Charset.defaultCharset());
 
                                 super.channelRead(ctx, msg);
                             }
@@ -42,19 +42,22 @@ public class TestPipeline {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object name) throws Exception {
                                 log.debug("2");
-                                Student student = new Student(name.toString());
-                                super.channelRead(ctx, student);
+                                // Student student = new Student(name.toString());
+                                // super.channelRead(ctx, student);
                                 // 将数据传递给下个 handler，如果不调用，调用链会断开 或者调用 ctx.fireChannelRead(student);
-                                // super.channelRead(ctx, name);
+                                super.channelRead(ctx, name);
                             }
                         });
 
                         pipeline.addLast("h3", new ChannelInboundHandlerAdapter(){
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                log.debug("3, 结果{}, class:{}", msg, msg.getClass());
-                                // ctx.writeAndFlush(ctx.alloc().buffer().writeBytes("server...".getBytes()));
+                                // log.debug("3, 结果{}, class:{}", msg, msg.getClass());
+                                // ch.writeAndFlush 是从tail往前找
                                 ch.writeAndFlush(ctx.alloc().buffer().writeBytes("server...".getBytes()));
+
+                                // ctx.writeAndFlush 是从当前的处理器向前找出栈的处理器 （找h3，找h2，找h1）
+                                // ctx.writeAndFlush(ctx.alloc().buffer().writeBytes("server...".getBytes()));
                             }
                         });
                         // 出站处理器。主要是write方法
