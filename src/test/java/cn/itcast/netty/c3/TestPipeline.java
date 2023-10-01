@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 @Slf4j
@@ -30,6 +31,10 @@ public class TestPipeline {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                 log.debug("1");
+
+                                ByteBuf buf = (ByteBuf) msg;
+                                String name = buf.toString(Charset.defaultCharset());
+
                                 super.channelRead(ctx, msg);
                             }
                         });
@@ -37,14 +42,17 @@ public class TestPipeline {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object name) throws Exception {
                                 log.debug("2");
-                                super.channelRead(ctx, name); // 将数据传递给下个 handler，如果不调用，调用链会断开 或者调用 ctx.fireChannelRead(student);
+                                Student student = new Student(name.toString());
+                                super.channelRead(ctx, student);
+                                // 将数据传递给下个 handler，如果不调用，调用链会断开 或者调用 ctx.fireChannelRead(student);
+                                // super.channelRead(ctx, name);
                             }
                         });
 
                         pipeline.addLast("h3", new ChannelInboundHandlerAdapter(){
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                log.debug("3");
+                                log.debug("3, 结果{}, class:{}", msg, msg.getClass());
                                 // ctx.writeAndFlush(ctx.alloc().buffer().writeBytes("server...".getBytes()));
                                 ch.writeAndFlush(ctx.alloc().buffer().writeBytes("server...".getBytes()));
                             }
