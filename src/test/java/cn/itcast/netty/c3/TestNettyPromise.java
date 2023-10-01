@@ -31,6 +31,8 @@ public class TestNettyPromise {
         // 4. 接收结果的线程
         log.debug("等待结果...");
         log.debug("结果是: {}", promise.get());
+
+        // 开发RPC框架，Future是不够用的，一定要用promise
     }
 
 }
