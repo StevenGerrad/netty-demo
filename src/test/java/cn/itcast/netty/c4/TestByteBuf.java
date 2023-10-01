@@ -8,8 +8,9 @@ import static io.netty.util.internal.StringUtil.NEWLINE;
 
 public class TestByteBuf {
     public static void main(String[] args) {
-
-        ByteBuf buf = ByteBufAllocator.DEFAULT.buffer();    // netty的bytebuf是可以自动扩容的
+        // netty的bytebuf是可以自动扩容的
+        // ByteBuf buf = ByteBufAllocator.DEFAULT.buffer();
+        ByteBuf buf = ByteBufAllocator.DEFAULT.heapBuffer();
         System.out.println(buf.getClass());
         System.out.println(buf.maxCapacity());
         log(buf);
