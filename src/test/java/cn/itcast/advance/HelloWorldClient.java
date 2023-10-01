@@ -17,6 +17,18 @@ public class HelloWorldClient {
     static final Logger log = LoggerFactory.getLogger(HelloWorldClient.class);
 
     public static void main(String[] args) {
+        for(int i=0;i<10;i++){
+            send();
+        }
+        System.out.println("finish");
+    }
+
+    /**
+     * @description P94 黏包半包解决方案一：短连接，每次发送后断开连接
+     * @author wangjunyou
+     * @date 2023/10/1 21:49
+     */
+    public static void send(){
         NioEventLoopGroup worker = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -33,9 +45,11 @@ public class HelloWorldClient {
                             // super.channelActive(ctx);
                             for(int i=0;i<10;i++){
                                 ByteBuf buf = ctx.alloc().buffer(16);
-                                buf.writeBytes(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
+                                buf.writeBytes(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17});
                                 ctx.writeAndFlush(buf);
                                 // 黏包现象，发了10次，一次发16个字节，但是HelloWorldServer直接收到了160B
+
+                                ctx.channel().close();
                             }
                         }
                     });
