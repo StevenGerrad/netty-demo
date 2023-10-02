@@ -1,4 +1,4 @@
-package cn.itcast.advance;
+package cn.itcast.advance.c1;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
