@@ -28,10 +28,13 @@ public class TestMessageCodec {
         new MessageCodec().encode(null, message, buf);
         // channel.writeInbound(buf);
 
-        // ByteBuf s1 = buf.slice(0, 100);
-        // ByteBuf s2 = buf.slice(100, buf.readableBytes() - 100);
-        // s1.retain(); // 引用计数 2
-        // channel.writeInbound(s1); // release 1
-        // channel.writeInbound(s2);
+        // 用切片模拟黏包半包
+        ByteBuf s1 = buf.slice(0, 100);
+        ByteBuf s2 = buf.slice(100, buf.readableBytes() - 100);
+        s1.retain(); // 引用计数 2
+        channel.writeInbound(s1); // 会调用 release 1，引用计数 -1
+        // 不适用帧解码器，只发s1会报错 java.lang.IndexOutOfBoundsException: readerIndex(16) + length(223) exceeds writerIndex(100):
+        // 用了帧解码器之后发现数据不完整就不会发送给下一个handler
+        channel.writeInbound(s2);
     }
 }
