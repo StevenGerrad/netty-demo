@@ -52,6 +52,8 @@ public class TestMessageCodec {
         LoggingHandler LOGGING_HANDLER = new LoggingHandler();
 
         EmbeddedChannel channel = new EmbeddedChannel(
+                LOGGING_HANDLER,
+                FRAME_DECODER,
                 // 配置帧解码器解决黏包半包问题
                 new MessageCodec()
         );
