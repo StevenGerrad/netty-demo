@@ -134,6 +134,9 @@ public class ChatClient {
                                             ctx.writeAndFlush(new GroupQuitRequestMessage(username, s[1]));
                                             break;
                                         case "quit":
+                                            // 退出是触发了事件，又分正常/异常退出
+                                            // 正常退出：触发server channel的inactive事件
+                                            // 异常退出：服务器端出现异常，异常也是一种事件
                                             ctx.channel().close();
                                             return;
                                     }

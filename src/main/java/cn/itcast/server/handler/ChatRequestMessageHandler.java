@@ -16,6 +16,7 @@ public class ChatRequestMessageHandler extends SimpleChannelInboundHandler<ChatR
         Channel channel = SessionFactory.getSession().getChannel(to);
         // 在线
         if (channel != null) {
+            // TODO：没加群的人也可以通过gsend向群里发送消息
             channel.writeAndFlush(new ChatResponseMessage(msg.getFrom(), msg.getContent()));
         }
         // 不在线
