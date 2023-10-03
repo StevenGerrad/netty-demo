@@ -15,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+
 import io.netty.util.concurrent.DefaultPromise;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,25 +57,24 @@ public class RpcClientManager {
             // 2. 将消息对象发送出去
             getChannel().writeAndFlush(msg);
 
-            return null;
+            // 一个service的多次方法调用都需要不同的Promise对象，不同Promise就靠sequenceId对应
+            // 3. 准备一个空 Promise 对象，来接收结果             指定 promise 对象异步接收结果线程
+            DefaultPromise<Object> promise = new DefaultPromise<>(getChannel().eventLoop());
+            RpcResponseMessageHandler.PROMISES.put(sequenceId, promise);
 
-            // // 3. 准备一个空 Promise 对象，来接收结果             指定 promise 对象异步接收结果线程
-            // DefaultPromise<Object> promise = new DefaultPromise<>(getChannel().eventLoop());
-            // RpcResponseMessageHandler.PROMISES.put(sequenceId, promise);
-            //
-            // // promise.addListener(future -> {
-            // //    // 线程
-            // // });
-            //
-            // // 4. 等待 promise 结果
-            // promise.await();
-            // if(promise.isSuccess()) {
-            //     // 调用正常
-            //     return promise.getNow();
-            // } else {
-            //     // 调用失败
-            //     throw new RuntimeException(promise.cause());
-            // }
+            // promise.addListener(future -> {
+            //    // 线程
+            // });
+
+            // 4. 等待 promise 结果
+            promise.await();
+            if(promise.isSuccess()) {
+                // 调用正常
+                return promise.getNow();
+            } else {
+                // 调用失败
+                throw new RuntimeException(promise.cause());
+            }
         });
         return (T) o;
     }
@@ -151,8 +151,8 @@ public class RpcClientManager {
 
         // 但是一个Rpc调用者的使用习惯应该是这样的，类似直接使用Service服务层
         HelloService service = getProxyService(HelloService.class);    // 举例，下面应该创建代理类具体实现这种调用方式
-        service.sayHello("zhangsan");
-        service.sayHello("李四");
+        System.out.println(service.sayHello("zhangsan"));
+        System.out.println(service.sayHello("李四"));
 
 
     }
