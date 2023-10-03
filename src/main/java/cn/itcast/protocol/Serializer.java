@@ -58,6 +58,7 @@ public interface Serializer {
                 return json.getBytes(StandardCharsets.UTF_8);
             }
         }
+        // 如果使用protobuf的话会比较麻烦
     }
     class ClassCodec implements JsonSerializer<Class<?>>, JsonDeserializer<Class<?>> {
 
