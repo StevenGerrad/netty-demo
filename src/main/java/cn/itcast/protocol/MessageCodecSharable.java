@@ -63,7 +63,7 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
         // 无意义，对齐填充
         out.writeByte(0xff);
         // 6. 获取内容的字节数组
-        byte[] bytes = Serializer.Algorithm.Java.serialize(msg);
+        byte[] bytes = Config.getSerializerAlgorithm().serialize(msg);
         // 7. 长度
         out.writeInt(bytes.length);
         // 8. 写入内容
@@ -96,7 +96,7 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         int magicNum = in.readInt();
         byte version = in.readByte();
-        byte serializerType = in.readByte();
+        byte serializerAlgorithm = in.readByte();   // 0 或 1
         byte messageType = in.readByte();
         int sequenceId = in.readInt();
         in.readByte();
@@ -104,11 +104,16 @@ public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message
         byte[] bytes = new byte[length];
         in.readBytes(bytes, 0, length);
 
-        Message message = Serializer.Algorithm.Java.deserialize(Message.class, bytes);
+        // 找到反序列化算法
+        Serializer.Algorithm algorithm = Serializer.Algorithm.values()[serializerAlgorithm];
+        // 确定具体消息类型（Message 是个抽象类）
+        Class<?> messageClass = Message.getMessageClass(messageType);
+
+        Object deserialize = algorithm.deserialize(messageClass, bytes);
 
         // log.debug("{}, {}, {}, {}, {}, {}", magicNum, version, serializerType, messageType, sequenceId, length);
         // log.debug("{}", message);
-        out.add(message);
+        out.add(deserialize);
     }
 }
 
