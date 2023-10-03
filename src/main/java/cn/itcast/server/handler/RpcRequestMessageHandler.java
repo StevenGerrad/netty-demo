@@ -28,6 +28,7 @@ public class RpcRequestMessageHandler extends SimpleChannelInboundHandler<RpcReq
             response.setReturnValue(invoke);
         } catch (Exception e) {
             e.printStackTrace();
+            // 异常内容太多了，所有堆栈信息都放进去了，客户端会超过解码器最大限制。
             String msg = e.getCause().getMessage();
             response.setExceptionValue(new Exception("远程调用出错:" + msg));
         }
