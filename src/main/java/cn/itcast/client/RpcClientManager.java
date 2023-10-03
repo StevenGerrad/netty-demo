@@ -4,7 +4,7 @@ import cn.itcast.client.handler.RpcResponseMessageHandler;
 import cn.itcast.message.RpcRequestMessage;
 import cn.itcast.protocol.MessageCodecSharable;
 import cn.itcast.protocol.ProcotolFrameDecoder;
-// import cn.itcast.protocol.SequenceIdGenerator;
+import cn.itcast.protocol.SequenceIdGenerator;
 import cn.itcast.server.service.HelloService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -32,47 +32,53 @@ public class RpcClientManager {
 // //        System.out.println(service.sayHello("lisi"));
 // //        System.out.println(service.sayHello("wangwu"));
 //     }
-//
-//     // 创建代理类
-//     public static <T> T getProxyService(Class<T> serviceClass) {
-//         ClassLoader loader = serviceClass.getClassLoader();
-//         Class<?>[] interfaces = new Class[]{serviceClass};
-//         //                                                            sayHello  "张三"
-//         Object o = Proxy.newProxyInstance(loader, interfaces, (proxy, method, args) -> {
-//             // 1. 将方法调用转换为 消息对象
-//             int sequenceId = SequenceIdGenerator.nextId();
-//             RpcRequestMessage msg = new RpcRequestMessage(
-//                     sequenceId,
-//                     serviceClass.getName(),
-//                     method.getName(),
-//                     method.getReturnType(),
-//                     method.getParameterTypes(),
-//                     args
-//             );
-//             // 2. 将消息对象发送出去
-//             getChannel().writeAndFlush(msg);
-//
-//             // 3. 准备一个空 Promise 对象，来接收结果             指定 promise 对象异步接收结果线程
-//             DefaultPromise<Object> promise = new DefaultPromise<>(getChannel().eventLoop());
-//             RpcResponseMessageHandler.PROMISES.put(sequenceId, promise);
-//
-// //            promise.addListener(future -> {
-// //                // 线程
-// //            });
-//
-//             // 4. 等待 promise 结果
-//             promise.await();
-//             if(promise.isSuccess()) {
-//                 // 调用正常
-//                 return promise.getNow();
-//             } else {
-//                 // 调用失败
-//                 throw new RuntimeException(promise.cause());
-//             }
-//         });
-//         return (T) o;
-//     }
-//
+
+    /**
+     * @description 创建代理类，内部会把方法调用转换成消息的发送
+     * @param serviceClass 接口类型
+     */
+    public static <T> T getProxyService(Class<T> serviceClass) {
+        // 用jdk自带的代理
+        ClassLoader loader = serviceClass.getClassLoader();
+        Class<?>[] interfaces = new Class[]{serviceClass};
+        // eg. sayHello  "张三"
+        Object o = Proxy.newProxyInstance(loader, interfaces, (proxy, method, args) -> {
+            // 1. 将方法调用转换为 消息对象（RpcRequestMessage）
+            int sequenceId = SequenceIdGenerator.nextId();
+            RpcRequestMessage msg = new RpcRequestMessage(
+                    sequenceId,
+                    serviceClass.getName(),
+                    method.getName(),
+                    method.getReturnType(),
+                    method.getParameterTypes(),
+                    args
+            );
+            // 2. 将消息对象发送出去
+            getChannel().writeAndFlush(msg);
+
+            return null;
+
+            // // 3. 准备一个空 Promise 对象，来接收结果             指定 promise 对象异步接收结果线程
+            // DefaultPromise<Object> promise = new DefaultPromise<>(getChannel().eventLoop());
+            // RpcResponseMessageHandler.PROMISES.put(sequenceId, promise);
+            //
+            // // promise.addListener(future -> {
+            // //    // 线程
+            // // });
+            //
+            // // 4. 等待 promise 结果
+            // promise.await();
+            // if(promise.isSuccess()) {
+            //     // 调用正常
+            //     return promise.getNow();
+            // } else {
+            //     // 调用失败
+            //     throw new RuntimeException(promise.cause());
+            // }
+        });
+        return (T) o;
+    }
+
     // TODO: 教程里没加 volatile
     private static volatile Channel channel = null;
     private static final Object LOCK = new Object();
@@ -132,13 +138,22 @@ public class RpcClientManager {
     }
 
     public static void main(String[] args) {
-        getChannel().writeAndFlush(new RpcRequestMessage(
-                1,
-                "cn.itcast.server.service.HelloService",
-                "sayHello",
-                String.class,
-                new Class[]{String.class},
-                new Object[]{"张三"}
-        ));
+        // P133 把方法抽取了出来
+        // P134 不能每次都创建channel，实现了单例模式
+        // getChannel().writeAndFlush(new RpcRequestMessage(
+        //         1,
+        //         "cn.itcast.server.service.HelloService",
+        //         "sayHello",
+        //         String.class,
+        //         new Class[]{String.class},
+        //         new Object[]{"张三"}
+        // ));
+
+        // 但是一个Rpc调用者的使用习惯应该是这样的，类似直接使用Service服务层
+        HelloService service = getProxyService(HelloService.class);    // 举例，下面应该创建代理类具体实现这种调用方式
+        service.sayHello("zhangsan");
+        service.sayHello("李四");
+
+
     }
 }
