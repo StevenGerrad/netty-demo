@@ -54,6 +54,7 @@ public interface Serializer {
             @Override
             public <T> byte[] serialize(T object) {
                 Gson gson = new GsonBuilder().registerTypeAdapter(Class.class, new Serializer.ClassCodec()).create();
+                // String json = new Gson().toJson(object); // 需要使用转换器，而不能是无参的Serializer
                 String json = gson.toJson(object);
                 return json.getBytes(StandardCharsets.UTF_8);
             }
