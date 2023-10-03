@@ -62,12 +62,16 @@ public class RpcClientManager {
             DefaultPromise<Object> promise = new DefaultPromise<>(getChannel().eventLoop());
             RpcResponseMessageHandler.PROMISES.put(sequenceId, promise);
 
+
+            // 4. 等待 promise 结果（同步，.await()等）
+            promise.await();
+
+            // 如果是异步等待 promise 结果
             // promise.addListener(future -> {
-            //    // 线程
+            //    // 这个线程从 getChannel().eventLoop() 中来
+            //    // TODO：对于线程的问题最终一定要再整理一下
             // });
 
-            // 4. 等待 promise 结果
-            promise.await();
             if(promise.isSuccess()) {
                 // 调用正常
                 return promise.getNow();
