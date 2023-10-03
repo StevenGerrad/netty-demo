@@ -24,11 +24,11 @@ public class TestByteBuf {
                         ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                ByteBuf buf = ctx.alloc().buffer(); // 获取分配器对象
-                                log.debug("alloc buf {}", buf);
+                                // ByteBuf buf = ctx.alloc().buffer(); // 获取分配器对象
+                                // log.debug("alloc buf {}", buf);
 
-                                // log.debug("receive buf {}", msg);
-                                // System.out.println("");
+                                log.debug("receive buf {}", msg);
+                                System.out.println("");
                             }
                         });
                     }
@@ -36,5 +36,8 @@ public class TestByteBuf {
         // 查看源码后可知 ：
         // -Dio.netty.allocator.type=unpooled 控制是否使用池化
         // -Dio.netty.noPreferDirect=true 控制是否不使用直接内存
+
+        // P129 发现还是直接内存 receive buf UnpooledByteBufAllocator$InstrumentedUnpooledUnsafeNoCleanerDirectByteBuf(ridx: 0, widx: 6, cap: 1024)
+        // 因为在io操作，网络读写数据的时候，直接内存效率更高。因而netty对io的读写操作强制使用了直接内存
     }
 }
